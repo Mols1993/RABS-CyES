@@ -24,8 +24,9 @@ class individual:
         """Mutar el individuo."""
 
 class model:
-    def __init__(self, pop = []):
+    def __init__(self, pop = [], signal = False):
         self.population = pop
+        self.signal = signal
 
     def __repr__(self):
         return str(self.population)
@@ -55,6 +56,13 @@ class model:
             l: Lista de padres
         """
 
+    def signalAmount(self):
+        """Calcular y retornar la cantidad de feromona/señal que este modelo emite.
+        
+        Returns:
+            f: Cantidad de feromona que el modelo emite
+        """
+
 def parsePacket(file = None):
     """Interpretar 1 linea del archivo de entrada, retornar el resultado.
 
@@ -81,12 +89,14 @@ def crossIndividuals(parent1 = None, parent2 = None):
 
 #Creamos los modelos
 selfModel = model()
-models = [selfModel]
+selfModels = [selfModel]
+nonSelfModels = []
 
 #Inicializamos la poblacion
 selfModel.initializePop()
 
 while(True):
+    models = selfModels + nonSelfModels
     #Leemos y procesamos el siguiente paquete
     packet = parsePacket()
 
@@ -103,5 +113,6 @@ while(True):
             h1, h2 = crossIndividuals(parents[j], parents[j + 1])
             h1.mutate()
             h2.mutate()
+
 
 #Este es el ciclo de vida basico para el modelo, le falta la interaccion entre los 2+ modelos
