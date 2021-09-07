@@ -1,17 +1,19 @@
 import numpy as np
 
 class individual:
-    def __init__(self, i = -1, g = np.array([]), e = 0):
+    def __init__(self, i = -1, g = np.array([]), e = 0, f = 0):
         self.id = i
         self.genes = g
         self.energy = e
+        self.fitness = f
 
     def __repr__(self):
         g = ""
         for i in self.genes:
             g = g + str(i) + "\n"
-        return "ID: " + str(self.id) + "\nGenes:\n" + g + "Energy: " + str(self.energy)
+        return "ID: " + str(self.id) + "\nGenes:\n" + g +  "\nEnergy: " + str(self.energy) + "\nFitness: " + str(self.fitness)
 
+    #Felipe/Alan
     def eatPacket(self, packet = None):
         """Alimentar a individuo con packet.
 
@@ -20,6 +22,7 @@ class individual:
         """
         print("Eat packet")
 
+    #Felipe/Alan
     def mutate(self):
         """Mutar el individuo."""
 
@@ -31,6 +34,7 @@ class model:
     def __repr__(self):
         return str(self.population)
 
+    #Matias
     def initializePop(self, num = 100):
         """Generar población inicial.
     
@@ -39,12 +43,15 @@ class model:
         """
         print("Initialize population")
 
+    #---
     def feedPop(self, packet = None):
         """Alimentar a la poblacion de este modelo.
 
         Args:
             packet: El paquete con que se va a alimentar (def = None)
         """
+        for i in self.population:
+            i.eatPacket(packet)
 
     def selectParents(self, num = 0):
         """Seleccionar una cantidad num de padres del modelo y retornar como lista.
@@ -63,6 +70,7 @@ class model:
             f: Cantidad de feromona que el modelo emite
         """
 
+#Martin
 def parsePacket(file = None):
     """Interpretar 1 linea del archivo de entrada, retornar el resultado.
 
@@ -102,17 +110,21 @@ while(True):
 
     #Alimentamos a el/los modelos
     for i in models:
-        i.feedPop()
+        i.feedPop(packet)
     
     #Realizamos la seleccion de padres
     for i in models:
         parents = i.selectParents()
 
+        newPop = []
         #Realizamos la cruza
         for j in range(0, len(parents), 2):
             h1, h2 = crossIndividuals(parents[j], parents[j + 1])
             h1.mutate()
             h2.mutate()
+            newPop.append(h1)
+            newPop.append(h2)
+        i.population = newPop
 
 
 #Este es el ciclo de vida basico para el modelo, le falta la interaccion entre los 2+ modelos
