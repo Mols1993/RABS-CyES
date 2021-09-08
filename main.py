@@ -45,8 +45,6 @@ class model:
         Args:
             num: Tamaño de la población (def = 100)
         """
-        random.random()
-        print("Initialize population")
         for i in range(num):
             gene = []
             for j in range(initialMatrixSize):
@@ -121,6 +119,8 @@ nonSelfModels = []
 
 #Inicializamos la poblacion
 selfModel.initializePop()
+
+print(selfModel)
 
 while(True):
     models = selfModels + nonSelfModels
