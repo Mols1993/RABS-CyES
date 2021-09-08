@@ -1,4 +1,8 @@
 import numpy as np
+import random
+
+#Tamaño de matriz para la inicialización inicial de la población
+initialMatrixSize = 5
 
 class individual:
     def __init__(self, i = -1, g = np.array([]), e = 0, f = 0):
@@ -11,7 +15,7 @@ class individual:
         g = ""
         for i in self.genes:
             g = g + str(i) + "\n"
-        return "ID: " + str(self.id) + "\nGenes:\n" + g +  "\nEnergy: " + str(self.energy) + "\nFitness: " + str(self.fitness)
+        return "ID: " + str(self.id) + "\nGenes:\n" + g +  "\nEnergy: " + str(self.energy) + "\nFitness: " + str(self.fitness) + "\n--------------------\n"
 
     #Felipe/Alan
     def eatPacket(self, packet = None):
@@ -41,7 +45,22 @@ class model:
         Args:
             num: Tamaño de la población (def = 100)
         """
+        random.random()
         print("Initialize population")
+        for i in range(num):
+            gene = []
+            for j in range(initialMatrixSize):
+                g = []
+                m = 100
+                for k in range(initialMatrixSize):
+                    val = random.randint(0, m)
+                    if(k == initialMatrixSize - 1):
+                        val = m
+                    m = m - val
+                    g.append(val / 100)
+                gene.append(g)
+            self.population.append(individual(i, np.matrix(gene), 0, 0))
+
 
     #---
     def feedPop(self, packet = None):
