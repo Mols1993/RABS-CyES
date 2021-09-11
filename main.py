@@ -28,7 +28,7 @@ class individual:
 
     #Felipe/Alan
     def mutate(self):
-        """Mutar el individuo."""
+        """Mutar genes del individuo."""
 
 class model:
     def __init__(self, pop = [], signal = False):
