@@ -25,17 +25,25 @@ class individual:
             packet: El paquete parseado para alimentar a la población (def = None)
             packetAnt: El paquete parseado anteriormente (def = None)
         """
-        packets = self.choosePackets(packet, packetAnt)
+        fMarkov = []
+        packets = self.choosePackets(fMarkov)
         print("Eat packet")
 
-    def choosePackets(self, packet = None, packetAnt = None):
+    def choosePackets(self, fMarkov = []):
         """Elegir apuesta individuo.
         
         Args:
             packet: El paquete parseado para alimentar a la población (def = None)
             packetAnt: El paquete parseado anteriormente (def = None)
         """
-        packets = []
+        packets = [] # Se guardaran las mejores opciones
+        margen = 0.1
+        max_item = max(fMarkov,float)
+        packets.append(max_item)
+        for i in fMarkov:
+            if i >= max_item-(max_item*margen):
+                packets.append(i)
+        
         return packets
     
     #Felipe/Alan
