@@ -18,14 +18,26 @@ class individual:
         return "ID: " + str(self.id) + "\nGenes:\n" + g +  "\nEnergy: " + str(self.energy) + "\nFitness: " + str(self.fitness) + "\n--------------------\n"
 
     #Felipe/Alan
-    def eatPacket(self, packet = None):
+    def eatPacket(self, packet = None, packetAnt = None):
         """Alimentar a individuo con packet.
 
         Args:
             packet: El paquete parseado para alimentar a la población (def = None)
+            packetAnt: El paquete parseado anteriormente (def = None)
         """
+        packets = self.choosePackets(packet, packetAnt)
         print("Eat packet")
 
+    def choosePackets(self, packet = None, packetAnt = None):
+        """Elegir apuesta individuo.
+        
+        Args:
+            packet: El paquete parseado para alimentar a la población (def = None)
+            packetAnt: El paquete parseado anteriormente (def = None)
+        """
+        packets = []
+        return packets
+    
     #Felipe/Alan
     def mutate(self):
         """Mutar el individuo."""
