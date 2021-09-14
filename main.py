@@ -123,6 +123,7 @@ class model:
         for i in self.population:
             i.eatPacket(packet)
 
+    #Felipe/Alan
     def selectParents(self, num = 0):
         """Seleccionar una cantidad num de padres del modelo y retornar como lista.
         
@@ -152,6 +153,7 @@ def parsePacket(file = None):
     """
     print("Parse 1 packet into model format")
 
+#Felipe/Alan
 def crossIndividuals(parent1 = None, parent2 = None):
     """Hacer 2 hijos a partir de los padres y retornarlos.
 
