@@ -68,14 +68,14 @@ class individual:
     def mutate(self):
         """Mutar el individuo."""
         mutacion = 0.05
-        for i in self.genes.itervalues():
+        for i in self.genes.keys():
             rand = random.random()
             if rand <= mutacion:
                 n1 = random.randint(0,len(i)-1)
                 n2 = random.randint(0,len(i)-1)
-                temp = i[n1][1]
-                i[n1][1] = i[n2][1]
-                i[n2][1] = temp 
+                temp = self.genes[i][n1][1]
+                self.genes[i][n1][1] = self.genes[i][n2][1]
+                self.genes[i][n2][1] = temp 
     
     # mutacion es el porcentaje de mutacion para cada gen del individuo. Escogiendo
     # dos random se logra intercambiar las probabilidades de cada packet 
