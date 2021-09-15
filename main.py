@@ -142,6 +142,29 @@ class model:
         """
 
 #Martin
+def makeUsableList(inputList = None):
+    """Recibir una lista con todos los elementos de la entrada, retornar una lista con solo los elementos relevantes.
+    Esto depende mucho de la entrada y su formato, de momento se trabaja igual como se hacia en CyES, quedando abierto a cambios una vez que se sepa como van a llegar los datos que nos van a entregar
+    
+    Args:
+        inputList: Lista completa (def = None)
+
+    Returns:
+        usableList: Lista con solo los elementos relevantes
+    """
+    usableList = []
+    usableList.append(inputList[7])
+    usableList.append(inputList[8])
+    usableList.append(inputList[9])
+    
+    for i in range(11,19):
+        usableList.append(inputList[i])
+    
+    for i in range(25,54):
+        usableList.append(inputList[i])
+            
+    return usableList
+    
 def parsePacket(file = None):
     """Interpretar 1 linea del archivo de entrada, retornar el resultado.
 
@@ -149,10 +172,16 @@ def parsePacket(file = None):
         file: Archivo a leer (def = None)
     
     Returns:
-        p: Paquete procesado
+        p: Paquete procesado, en forma de string
     """
-    print("Parse 1 packet into model format")
-
+    p = []
+    line = file.readline()
+    for elem in line.split():
+        p.append(int(elem))
+    p = string(makeUsableList(p))
+    print(p)
+    return p
+    
 #Felipe/Alan
 def crossIndividuals(parent1 = None, parent2 = None):
     """Hacer 2 hijos a partir de los padres y retornarlos.
