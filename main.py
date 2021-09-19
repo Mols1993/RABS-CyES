@@ -124,15 +124,32 @@ class model:
             i.eatPacket(packet)
 
     #Felipe/Alan
-    def selectParents(self, num = 0):
-        """Seleccionar una cantidad num de padres del modelo y retornar como lista.
+    def selectParents(self, num = 2):
+        """Seleccionar 2 padres (usando torneo) y retornar como lista.
         
         Args:
             num: Cantidad de padres a seleccionar (def = 0)
         
         Returns:
-            l: Lista de padres
+            p1, p2: Padres
         """
+        return self.torneoSelect(), self.torneoSelect()
+
+    def torneoSelect(self):
+        """ Seleccionar mejor opcion, retornandola. Si ambos son iguales, se retorna uno al azar.
+
+        Returns:
+            o1 o o2: Mejor opcion.
+        """
+        o1 = random.choice(self.population)
+        o2 = random.choice(self.population)
+        if o1.fitness > o2.fitness:
+            return o1
+        elif o1.fitness < o2.fitness:
+            return o2
+        else:
+            return random.choice([o1,o2])
+        
 
     def signalAmount(self):
         """Calcular y retornar la cantidad de feromona/señal que este modelo emite.
@@ -193,6 +210,7 @@ def crossIndividuals(parent1 = None, parent2 = None):
     Returns:
         h1, h2: Los 2 hijos
     """
+    m1 , m2 = {}
     print("Make 2 children from parents")
 
 
