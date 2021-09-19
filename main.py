@@ -36,11 +36,8 @@ class individual:
         """
         fMarkov = self.genes[packetAnt]
         packets = self.choosePackets(fMarkov)
-
-        for i in packets:
-            if i == packet:
-                self.fitness+1
-                break
+        if packet in packets:
+            self.fitness+1
 
         print("Eat packet")
 
@@ -49,6 +46,9 @@ class individual:
         
         Args:
             fMarkov: Fila en la matriz de markov del agente, que corresponde al paquete anteriormente llegado
+
+        Returns:
+            packets: Paquetes a los cuales se le apuesta.
         """
         packets = [] # Se guardaran las mejores opciones
         margen = 0.1
@@ -124,11 +124,8 @@ class model:
             i.eatPacket(packet)
 
     #Felipe/Alan
-    def selectParents(self, num = 2):
-        """Seleccionar 2 padres (usando torneo) y retornar como lista.
-        
-        Args:
-            num: Cantidad de padres a seleccionar (def = 0)
+    def selectParents(self):
+        """Seleccionar 2 padres (usando torneo) y retornarlos.
         
         Returns:
             p1, p2: Padres
