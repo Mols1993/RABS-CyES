@@ -126,13 +126,17 @@ class model:
             i.eatPacket(packet)
 
     #Felipe/Alan
-    def selectParents(self):
-        """Seleccionar 2 padres (usando torneo) y retornarlos.
+    def selectParents(self, num = 2):
+        """Seleccionar num padres (usando torneo) y retornarlos como lista.
         
         Returns:
-            p1, p2: Padres
+            p: Lista de padres
         """
-        return self.torneoSelect(), self.torneoSelect()
+        p = []
+        for i in range(num):
+            p.append(self.torneoSelect())
+        
+        return p
 
     def torneoSelect(self):
         """ Seleccionar mejor opcion, retornandola. Si ambos son iguales, se retorna uno al azar.
@@ -194,24 +198,35 @@ def parsePacket(file = None):
     line = file.readline()
     for elem in line.split():
         p.append(int(elem))
-    p = string(makeUsableList(p))
+    p = str(makeUsableList(p))
     print(p)
     return p
     
 #Felipe/Alan
-def crossIndividuals(parent1 = None, parent2 = None):
-    """Hacer 2 hijos a partir de los padres y retornarlos.
+def crossIndividuals(parent1 = {}, parent2 = {}):
+    """Hacer 2 hijos a partir de los genes de los padres y retornarlos.
 
     Args:
-        parent1: Padre 1 para crear un hijo (def = None)
-        parent2: Padre 2 para crear un hijo (def = None)
+        parent1: Genes del padre 1 para crear un hijo (def = None)
+        parent2: Genes del padre 2 para crear un hijo (def = None)
     
     Returns:
         h1, h2: Los 2 hijos
     """
-    m1 , m2 = {}
+    d1 , d2 = {}
+    c = 0
+    for i in parent1.keys():
+        if c % 2 == 0:
+            d1[i] = parent1[i]
+            d2[i] = parent2[i]
+        else:
+            d1[i] = parent2[i]
+            d2[i] = parent1[i]
+        c+1
+    contadorIndividuos+2
     print("Make 2 children from parents")
-
+    return individual.__init__(contadorIndividuos-2,d1,0,0),individual.__init__(contadorIndividuos-1,d2,0,0)
+    
 
 #Creamos los modelos
 selfModel = model()
@@ -239,7 +254,7 @@ while(True):
         newPop = []
         #Realizamos la cruza
         for j in range(0, len(parents), 2):
-            h1, h2 = crossIndividuals(parents[j], parents[j + 1])
+            h1, h2 = crossIndividuals(parents[j].genes, parents[j + 1].genes)
             h1.mutate()
             h2.mutate()
             newPop.append(h1)
