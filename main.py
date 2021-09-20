@@ -3,6 +3,7 @@ import random
 
 #Tamaño de matriz para la inicialización inicial de la población
 initialMatrixSize = 5
+contadorIndividuos = 0
 
 class individual:
     #El diccionario "genes" tiene la forma:
@@ -111,6 +112,7 @@ class model:
                     g.append([str(hash(random.random())), val / 100])
                 gene[packetID] = g
             self.population.append(individual(i, gene, 0, 0))
+            contadorIndividuos = i
 
 
     #---
