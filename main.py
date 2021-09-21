@@ -225,7 +225,7 @@ def crossIndividuals(parent1 = {}, parent2 = {}):
         c+1
     contadorIndividuos+2
     print("Make 2 children from parents")
-    return individual.__init__(contadorIndividuos-2,d1,0,0),individual.__init__(contadorIndividuos-1,d2,0,0)
+    return individual(contadorIndividuos-1,d1,0,0),individual(contadorIndividuos,d2,0,0)
     
 
 #Creamos los modelos
