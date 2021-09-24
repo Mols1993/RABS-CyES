@@ -1,9 +1,13 @@
 import numpy as np
-import random
+import random, copy
+import matplotlib.pyplot as plt
 
 #Tamaño de matriz para la inicialización inicial de la población
-initialMatrixSize = 5
+initialMatrixSize = 2
 contadorIndividuos = 0
+
+#Contador para tipos de paquetes, para actualizar los genes de los agentes y el comodin
+packetList = {}
 
 class individual:
     #El diccionario "genes" tiene la forma:
@@ -35,12 +39,13 @@ class individual:
             packet: El paquete parseado para alimentar a la población (def = None)
             packetAnt: El paquete parseado anteriormente (def = None)
         """
+        #print(packetAnt)
+        if(packetAnt == None or packetAnt not in self.genes.keys()):
+            packetAnt = "*"
         fMarkov = self.genes[packetAnt]
         packets = self.choosePackets(fMarkov)
-        if packet in packets:
-            self.fitness+1
-
-        print("Eat packet")
+        if packet in packets or (packet not in self.genes.keys() and "*" in packets):
+            self.fitness = self.fitness + 1
 
     def choosePackets(self, fMarkov = []):
         """Elegir apuesta individuo.
@@ -72,14 +77,40 @@ class individual:
         for i in self.genes.keys():
             rand = random.random()
             if rand <= mutacion:
-                n1 = random.randint(0,len(i)-1)
-                n2 = random.randint(0,len(i)-1)
+                n1 = random.randint(0,len(self.genes[i])-1)
+                n2 = random.randint(0,len(self.genes[i])-1)
                 temp = self.genes[i][n1][1]
                 self.genes[i][n1][1] = self.genes[i][n2][1]
                 self.genes[i][n2][1] = temp 
     
     # mutacion es el porcentaje de mutacion para cada gen del individuo. Escogiendo
-    # dos random se logra intercambiar las probabilidades de cada packet 
+    # dos random se logra intercambiar las probabilidades de cada packet    
+
+    def updateGenesWithPacket(self, packet = None):
+        """Actualizar los genes de los individuos para incluir el paquete 'packet', visto muchas veces.
+
+        Args:
+            packet: El paquete que se quiere agregar a los genes de la poblacion (def = None)
+        """
+        for i in self.genes:
+            newPacketChance = round(self.genes[i][0][1] / 2, 2)
+            newJchance = self.genes[i][0][1] - newPacketChance
+            self.genes[i].append([packet, newPacketChance])
+            self.genes[i][0][1] = newJchance
+        #print(selfModel)
+
+        self.genes[packet] = []    
+        geneLine = []
+        m = 100
+        for i in self.genes:
+            val = random.randint(0, m)
+            m = m - val
+            geneLine.append([i, val / 100])
+        geneLine[-1][1] = (val + m) / 100
+        self.genes[packet] = geneLine
+        #print("Post update:")
+        #print(self)
+        #input()
 
 
 
@@ -99,31 +130,22 @@ class model:
             num: Tamaño de la población (def = 100)
         """
         for i in range(num):
-            gene = {}
-            for j in range(initialMatrixSize):
-                packetID = str(hash(random.random()))
-                g = []
-                m = 100
-                for k in range(initialMatrixSize):
-                    val = random.randint(0, m)
-                    if(k == initialMatrixSize - 1):
-                        val = m
-                    m = m - val
-                    g.append([str(hash(random.random())), val / 100])
-                gene[packetID] = g
+            gene = {
+                "*" : [["*", 1]]
+            }
             self.population.append(individual(i, gene, 0, 0))
-            contadorIndividuos = i
+        contadorIndividuos = num
 
 
     #---
-    def feedPop(self, packet = None):
+    def feedPop(self, packet = None, lastPacket = None):
         """Alimentar a la poblacion de este modelo.
 
         Args:
             packet: El paquete con que se va a alimentar (def = None)
         """
         for i in self.population:
-            i.eatPacket(packet)
+            i.eatPacket(packet, lastPacket)
 
     #Felipe/Alan
     def selectParents(self, num = 2):
@@ -134,25 +156,50 @@ class model:
         """
         p = []
         for i in range(num):
-            p.append(self.torneoSelect())
+            p.append(self.torneoSelect(2))
         
         return p
 
-    def torneoSelect(self):
+    def torneoSelect(self, size = 2):
         """ Seleccionar mejor opcion, retornandola. Si ambos son iguales, se retorna uno al azar.
 
         Returns:
             o1 o o2: Mejor opcion.
         """
-        o1 = random.choice(self.population)
-        o2 = random.choice(self.population)
-        if o1.fitness > o2.fitness:
-            return o1
-        elif o1.fitness < o2.fitness:
-            return o2
-        else:
-            return random.choice([o1,o2])
-        
+        #popCopy = copy.deepcopy(self.population)
+        #random.shuffle(popCopy)
+        #participants = popCopy[0:size]
+        #participants.sort(key = orderByFitness, reverse = True)
+        #return participants[0]
+
+        popIDs = []
+        for i in range(size):
+            popIDs.append(1)
+        for i in range(len(self.population) - size):
+            popIDs.append(0)
+
+        random.shuffle(popIDs)
+        participants = [i for i, j in zip(self.population, popIDs) if j]
+        participants.sort(key = orderByFitness, reverse = True)
+        return copy.deepcopy(participants[0])
+
+        #o1 = random.choice(self.population)
+        #o2 = random.choice(self.population)
+        #if o1.fitness > o2.fitness:
+        #    return o1
+        #elif o1.fitness < o2.fitness:
+        #    return o2
+        #else:
+        #    return random.choice([o1,o2])
+
+    def checkDictionaryUpdate(self):
+        """Revisar si hay algun paquete nuevo que agregar a su matriz de markov
+        """
+        commonPackets = list(dict(filter(lambda p: int(p[1]) >= 10, packetList.items())).keys())
+        for i in commonPackets:
+            for j in self.population:
+                if(i not in j.genes):
+                    j.updateGenesWithPacket(i)
 
     def signalAmount(self):
         """Calcular y retornar la cantidad de feromona/señal que este modelo emite.
@@ -160,6 +207,9 @@ class model:
         Returns:
             f: Cantidad de feromona que el modelo emite
         """
+
+def orderByFitness(x):
+    return x.fitness
 
 #Martin
 def makeUsableList(inputList = None):
@@ -198,8 +248,7 @@ def parsePacket(file = None):
     line = file.readline()
     for elem in line.split():
         p.append(int(elem))
-    p = str(makeUsableList(p))
-    print(p)
+    p = ''.join(map(str, makeUsableList(p)))
     return p
     
 #Felipe/Alan
@@ -213,7 +262,8 @@ def crossIndividuals(parent1 = {}, parent2 = {}):
     Returns:
         h1, h2: Los 2 hijos
     """
-    d1 , d2 = {}
+    d1 = {}
+    d2 = {}
     c = 0
     for i in parent1.keys():
         if c % 2 == 0:
@@ -222,11 +272,25 @@ def crossIndividuals(parent1 = {}, parent2 = {}):
         else:
             d1[i] = parent2[i]
             d2[i] = parent1[i]
-        c+1
-    contadorIndividuos+2
-    print("Make 2 children from parents")
+        c = c + 1
+    global contadorIndividuos
+    contadorIndividuos = contadorIndividuos + 2
     return individual(contadorIndividuos-1,d1,0,0),individual(contadorIndividuos,d2,0,0)
-    
+
+def evaluatePop(model = None):
+    """Obtener una evaluación de la población del modelo "model".
+
+    Args:
+        model: El modelo a evaluar (def = None)
+
+    Returns:
+        totalFitness: La suma de las fitness de toda la población.
+    """
+    totalFitness = 0
+    for i in model.population:
+        totalFitness = totalFitness + i.fitness
+
+    return totalFitness
 
 #Creamos los modelos
 selfModel = model()
@@ -236,30 +300,69 @@ nonSelfModels = []
 #Inicializamos la poblacion
 selfModel.initializePop()
 
-print(selfModel)
+#print(selfModel)
+
+file1 = open("testInput/datosNormales.txt", "rt")
+file2 = open("testInput/datosAtaque.txt", "rt")
+
+currentFile = file1
+
+ticks = 0
+
+fitnessHistory = []
+
+lastPacket = None
 
 while(True):
+    ticks = ticks + 1
     models = selfModels + nonSelfModels
+    if(ticks == 251):
+        currentFile = file2
     #Leemos y procesamos el siguiente paquete
-    packet = parsePacket()
+    try:
+        packet = parsePacket(currentFile)
+    except(IndexError):
+        print("Parece que se terminó el archivo")
+        plt.plot(fitnessHistory)
+        plt.show()
+        print(models)
+        exit(0)
+
+    if(packet in packetList):
+        packetList[packet] = packetList[packet] + 1
+    else:
+        packetList[packet] = 1
 
     #Alimentamos a el/los modelos
     for i in models:
-        i.feedPop(packet)
-    
-    #Realizamos la seleccion de padres
-    for i in models:
-        parents = i.selectParents()
+        i.feedPop(packet, lastPacket)
 
-        newPop = []
-        #Realizamos la cruza
-        for j in range(0, len(parents), 2):
-            h1, h2 = crossIndividuals(parents[j].genes, parents[j + 1].genes)
-            h1.mutate()
-            h2.mutate()
-            newPop.append(h1)
-            newPop.append(h2)
-        i.population = newPop
+    fitnessHistory.append(evaluatePop(i))
+
+    #print(selfModel)
+    #input()
+    
+    #Esto controla cada cuantas generaciones se realiza una cruza. (def = 1, osea en todas)
+    if(not ticks % 1):
+        print(ticks)
+        #Realizamos la seleccion de padres
+        for i in models:
+            parents = i.selectParents(len(i.population))
+        
+            newPop = []
+            #Realizamos la cruza
+            for j in range(0, len(parents), 2):
+                h1, h2 = crossIndividuals(parents[j].genes, parents[j + 1].genes)
+                h1.mutate()
+                h2.mutate()
+                newPop.append(h1)
+                newPop.append(h2)
+            i.population = newPop
+        
+        #Actualizamos la matriz de todos los agentes si hay un nuevo paquete que agregar a sus genes
+        i.checkDictionaryUpdate()
+            
+    lastPacket = packet
 
 
 #Este es el ciclo de vida basico para el modelo, le falta la interaccion entre los 2+ modelos
