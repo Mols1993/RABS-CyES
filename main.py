@@ -143,6 +143,7 @@ class model:
 
         Args:
             packet: El paquete con que se va a alimentar (def = None)
+            lastPacket: Paquete anteriormente recibido
         """
         for i in self.population:
             i.eatPacket(packet, lastPacket)
@@ -207,6 +208,17 @@ class model:
         Returns:
             f: Cantidad de feromona que el modelo emite
         """
+
+def elitism(population,news):
+    """Ordenar segun fitness y eliminar a los peores reemplazandolos por los hijos creados.
+        
+    Args:
+        population: Poblacion que va a conservar a los mejores
+        news: Hijos creados que se agregaran a la poblacion (population)
+    """
+    sorted(population, key = orderByFitness)
+    population = population[:(len(population)-len(news))]
+    population.extend(news)
 
 def orderByFitness(x):
     return x.fitness
@@ -341,24 +353,24 @@ while(True):
 
     #print(selfModel)
     #input()
-    
+    percentageElitism = 0.4
     #Esto controla cada cuantas generaciones se realiza una cruza. (def = 1, osea en todas)
     if(not ticks % 1):
         print(ticks)
         #Realizamos la seleccion de padres
         for i in models:
-            parents = i.selectParents(len(i.population))
-        
-            newPop = []
+            parentsSize = int(len(i.population)*(1-percentageElitism))
+            parents = i.selectParents(parentsSize if parentsSize%2==0 else parentsSize+1)
             #Realizamos la cruza
+            new = []
             for j in range(0, len(parents), 2):
                 h1, h2 = crossIndividuals(parents[j].genes, parents[j + 1].genes)
                 h1.mutate()
                 h2.mutate()
-                newPop.append(h1)
-                newPop.append(h2)
-            i.population = newPop
-        
+                new.append(h1)
+                new.append(h2)
+            elitism(i.population,new)
+                    
         #Actualizamos la matriz de todos los agentes si hay un nuevo paquete que agregar a sus genes
         i.checkDictionaryUpdate()
             
