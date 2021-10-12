@@ -216,7 +216,7 @@ def elitism(population,news):
         population: Poblacion que va a conservar a los mejores
         news: Hijos creados que se agregaran a la poblacion (population)
     """
-    sorted(population, key = orderByFitness)
+    sorted(population, key = orderByFitness, reverse = True)
     population = population[:(len(population)-len(news))]
     population.extend(news)
 
