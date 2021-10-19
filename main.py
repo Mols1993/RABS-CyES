@@ -19,11 +19,12 @@ class individual:
     #   packetID: [[packetID, probability], ..., [packetID, probability]]
     # }
     # packetID es el string resultante del hash (o lo que sea que se vaya a usar) de identificación de cada tipo de paquete
-    def __init__(self, i = -1, g = {}, e = 0, f = 0):
+    def __init__(self, i = -1, g = {}, e = 0, f = 0, fM = 0):
         self.id = i
         self.genes = g
         self.energy = e
         self.fitness = f
+        self.fitnessMemory = fM
 
     def __repr__(self):
         g = ""
@@ -46,6 +47,8 @@ class individual:
         packets = self.choosePackets(fMarkov)
         if packet in packets or (packet not in self.genes.keys() and "*" in packets):
             self.fitness = self.fitness + 1
+
+    
 
     def choosePackets(self, fMarkov = []):
         """Elegir apuesta individuo.
@@ -118,6 +121,7 @@ class model:
     def __init__(self, pop = [], signal = False):
         self.population = pop
         self.signal = signal
+        self.memory = None
 
     def __repr__(self):
         return str(self.population)
@@ -147,6 +151,24 @@ class model:
         """
         for i in self.population:
             i.eatPacket(packet, lastPacket)
+
+    def memoryUpdate(self):
+        """Darle un punto de fitnessMemory a los individuos de la poblacion con mayor fitness despues de un ciclo.
+        """
+        maxFitness = self.population[0]
+        i = 0
+        while self.population[i] == maxFitness and len(self.population)<i:
+            self.population[i].fitnessMemory+1
+            i+1
+    
+    def memoryChange(self):
+        """Cambiar la memoria de la poblacion, eligiendo al con mayor fitnessMemory
+        """
+        sorted(self.population, key = orderByMemoryFitness, reverse = True)
+        self.memory = copy.deepcopy(population[0])
+        for i in self.population:
+            i.fitnessMemory = 0
+
 
     #Felipe/Alan
     def selectParents(self, num = 2):
@@ -222,6 +244,9 @@ def elitism(population,news):
 
 def orderByFitness(x):
     return x.fitness
+
+def orderByMemoryFitness(x):
+    return x.fitnessMemory
 
 #Martin
 def makeUsableList(inputList = None):
@@ -354,9 +379,12 @@ while(True):
     #print(selfModel)
     #input()
     percentageElitism = 0.4
+    newMemory = 10
+    memoryCount = 0
     #Esto controla cada cuantas generaciones se realiza una cruza. (def = 1, osea en todas)
     if(not ticks % 1):
         print(ticks)
+        
         #Realizamos la seleccion de padres
         for i in models:
             parentsSize = int(len(i.population)*(1-percentageElitism))
@@ -370,7 +398,10 @@ while(True):
                 new.append(h1)
                 new.append(h2)
             elitism(i.population,new)
-                    
+            i.memoryUpdate()
+            if((not memoryCount % newMemory) and (memoryCount !=0)):
+                i.memoryChange()
+        memoryCount = memoryCount+1           
         #Actualizamos la matriz de todos los agentes si hay un nuevo paquete que agregar a sus genes
         i.checkDictionaryUpdate()
             
