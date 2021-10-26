@@ -165,7 +165,7 @@ class model:
         """Cambiar la memoria de la poblacion, eligiendo al con mayor fitnessMemory
         """
         sorted(self.population, key = orderByMemoryFitness, reverse = True)
-        self.memory = copy.deepcopy(population[0])
+        self.memory = copy.deepcopy(self.population[0])
         for i in self.population:
             i.fitnessMemory = 0
 
@@ -218,7 +218,7 @@ class model:
     def checkDictionaryUpdate(self):
         """Revisar si hay algun paquete nuevo que agregar a su matriz de markov
         """
-        commonPackets = list(dict(filter(lambda p: int(p[1]) >= 10, packetList.items())).keys())
+        commonPackets = list(dict(filter(lambda p: int(p[1]) >= 100, packetList.items())).keys())
         for i in commonPackets:
             for j in self.population:
                 if(i not in j.genes):
@@ -380,9 +380,8 @@ while(True):
     #input()
     percentageElitism = 0.4
     newMemory = 10
-    memoryCount = 0
     #Esto controla cada cuantas generaciones se realiza una cruza. (def = 1, osea en todas)
-    if(not ticks % 1):
+    if(not ticks % 10):
         print(ticks)
         
         #Realizamos la seleccion de padres
@@ -399,9 +398,8 @@ while(True):
                 new.append(h2)
             elitism(i.population,new)
             i.memoryUpdate()
-            if((not memoryCount % newMemory) and (memoryCount !=0)):
-                i.memoryChange()
-        memoryCount = memoryCount+1           
+            if((not ticks % newMemory) and (ticks !=0)):
+                i.memoryChange()          
         #Actualizamos la matriz de todos los agentes si hay un nuevo paquete que agregar a sus genes
         i.checkDictionaryUpdate()
             
