@@ -399,7 +399,9 @@ while(True):
             elitism(i.population,new)
             i.memoryUpdate()
             if((not ticks % newMemory) and (ticks !=0)):
-                i.memoryChange()          
+                i.memoryChange()
+            for j in i.population:
+                j.fitness = 0          
         #Actualizamos la matriz de todos los agentes si hay un nuevo paquete que agregar a sus genes
         i.checkDictionaryUpdate()
             
