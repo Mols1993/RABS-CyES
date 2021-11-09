@@ -73,7 +73,7 @@ class individual:
         
         return packets
     
-    #Felipe/Alan
+    #Felipe/Alan CAMBIAR ESTO
     def mutate(self):
         """Mutar el individuo."""
         mutacion = 0.05
@@ -218,7 +218,7 @@ class model:
     def checkDictionaryUpdate(self):
         """Revisar si hay algun paquete nuevo que agregar a su matriz de markov
         """
-        commonPackets = list(dict(filter(lambda p: int(p[1]) >= 100, packetList.items())).keys())
+        commonPackets = list(dict(filter(lambda p: int(p[1]) >= 10, packetList.items())).keys())
         for i in commonPackets:
             for j in self.population:
                 if(i not in j.genes):
@@ -288,7 +288,7 @@ def parsePacket(file = None):
     p = ''.join(map(str, makeUsableList(p)))
     return p
     
-#Felipe/Alan
+#Felipe/Alan PROMEDIAR PADRES
 def crossIndividuals(parent1 = {}, parent2 = {}):
     """Hacer 2 hijos a partir de los genes de los padres y retornarlos.
 
@@ -335,7 +335,7 @@ selfModels = [selfModel]
 nonSelfModels = []
 
 #Inicializamos la poblacion
-selfModel.initializePop()
+selfModel.initializePop(10)
 
 #print(selfModel)
 
@@ -374,8 +374,6 @@ while(True):
     for i in models:
         i.feedPop(packet, lastPacket)
 
-    fitnessHistory.append(evaluatePop(i))
-
     #print(selfModel)
     #input()
     percentageElitism = 0.4
@@ -383,6 +381,8 @@ while(True):
     #Esto controla cada cuantas generaciones se realiza una cruza. (def = 1, osea en todas)
     if(not ticks % 10):
         print(ticks)
+        medianFitness = evaluatePop(i) / len(i.population)
+        fitnessHistory.append(medianFitness)
         
         #Realizamos la seleccion de padres
         for i in models:
@@ -401,7 +401,7 @@ while(True):
             if((not ticks % newMemory) and (ticks !=0)):
                 i.memoryChange()
             for j in i.population:
-                j.fitness = 0          
+                j.fitness = 0
         #Actualizamos la matriz de todos los agentes si hay un nuevo paquete que agregar a sus genes
         i.checkDictionaryUpdate()
             
