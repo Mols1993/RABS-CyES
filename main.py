@@ -74,6 +74,18 @@ class individual:
         return packets
     
     #Felipe/Alan CAMBIAR ESTO
+    def mutate2(self):
+        """Mutar el individuo."""
+        mutacion = 0.05
+        for i in self.genes.keys():
+            rand = random.random()
+            if rand <= mutacion:
+                n1 = random.randint(0,len(self.genes[i])-1)
+                n2 = random.randint(0,len(self.genes[i])-1)
+                temp = self.genes[i][n1][1]*0.5
+                self.genes[i][n1][1] = self.genes[i][n1][1]-temp
+                self.genes[i][n2][1] = self.genes[i][n2][1]+temp
+    
     def mutate(self):
         """Mutar el individuo."""
         mutacion = 0.05
@@ -416,7 +428,7 @@ while(True):
             for j in range(0, len(parents), 2):
                 h1 = crossIndividuals2(parents[j].genes, parents[j + 1].genes)
                 #h2 = crossIndividuals2(parents[j+2].genes, parents[j + 3].genes)
-                h1.mutate()
+                h1.mutate2()
                 #h2.mutate()
                 new.append(h1)
                 #new.append(h2)
