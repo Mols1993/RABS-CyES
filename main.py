@@ -289,6 +289,28 @@ def parsePacket(file = None):
     return p
     
 #Felipe/Alan PROMEDIAR PADRES
+def crossIndividuals2(parent1 = {}, parent2 = {}):
+    """Hacer 2 hijos a partir de los genes de los padres y retornarlos.
+
+    Args:
+        parent1: Genes del padre 1 para crear un hijo (def = None)
+        parent2: Genes del padre 2 para crear un hijo (def = None)
+    
+    Returns:
+        h1: Hijo generado
+    """
+    d1 = {}
+    c = 0
+    for i in parent1.keys():
+        lista = []
+        for j in range(len(parent1.get(i))):
+           probability = ((parent1.get(i))[j][1]+(parent2.get(i))[j][1])/2
+           lista.append([parent1.get(i)[j][0],probability])
+        d1[i] = lista
+    global contadorIndividuos
+    contadorIndividuos = contadorIndividuos + 1
+    return individual(contadorIndividuos-1,d1,0,0)
+
 def crossIndividuals(parent1 = {}, parent2 = {}):
     """Hacer 2 hijos a partir de los genes de los padres y retornarlos.
 
@@ -309,6 +331,7 @@ def crossIndividuals(parent1 = {}, parent2 = {}):
         else:
             d1[i] = parent2[i]
             d2[i] = parent1[i]
+        print(str(type(parent1.get(i)))+" "+ str(len(parent1.get(i)))+" "+ str(parent1.get(i)[0][1]))
         c = c + 1
     global contadorIndividuos
     contadorIndividuos = contadorIndividuos + 2
@@ -386,16 +409,17 @@ while(True):
         
         #Realizamos la seleccion de padres
         for i in models:
-            parentsSize = int(len(i.population)*(1-percentageElitism))
+            parentsSize = int(len(i.population)*(1-percentageElitism))*2
             parents = i.selectParents(parentsSize if parentsSize%2==0 else parentsSize+1)
             #Realizamos la cruza
             new = []
             for j in range(0, len(parents), 2):
-                h1, h2 = crossIndividuals(parents[j].genes, parents[j + 1].genes)
+                h1 = crossIndividuals2(parents[j].genes, parents[j + 1].genes)
+                #h2 = crossIndividuals2(parents[j+2].genes, parents[j + 3].genes)
                 h1.mutate()
-                h2.mutate()
+                #h2.mutate()
                 new.append(h1)
-                new.append(h2)
+                #new.append(h2)
             elitism(i.population,new)
             i.memoryUpdate()
             if((not ticks % newMemory) and (ticks !=0)):
