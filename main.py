@@ -1,10 +1,11 @@
 import numpy as np
 import random, copy
 import matplotlib.pyplot as plt
+## PARÁMETROS DE LA EVOLUCIÓN
+initialMatrixSize = 2 #Tamaño de matriz para la inicialización inicial de la población
+contadorIndividuos = 0 #Contador de individuos para ID
 
-#Tamaño de matriz para la inicialización inicial de la población
-initialMatrixSize = 2
-contadorIndividuos = 0
+## FIN PARÁMETROS DE LA EVOLUCIÓN
 
 #Contador para tipos de paquetes, para actualizar los genes de los agentes y el comodin
 packetList = {}
@@ -230,7 +231,7 @@ class model:
     def checkDictionaryUpdate(self):
         """Revisar si hay algun paquete nuevo que agregar a su matriz de markov
         """
-        commonPackets = list(dict(filter(lambda p: int(p[1]) >= 10, packetList.items())).keys())
+        commonPackets = list(dict(filter(lambda p: int(p[1]) >= 100, packetList.items())).keys())
         for i in commonPackets:
             for j in self.population:
                 if(i not in j.genes):
@@ -250,9 +251,10 @@ def elitism(population,news):
         population: Poblacion que va a conservar a los mejores
         news: Hijos creados que se agregaran a la poblacion (population)
     """
-    sorted(population, key = orderByFitness, reverse = True)
+    population = sorted(population, key = orderByFitness, reverse = True)
     population = population[:(len(population)-len(news))]
     population.extend(news)
+    return population
 
 def orderByFitness(x):
     return x.fitness
@@ -295,9 +297,10 @@ def parsePacket(file = None):
     """
     p = []
     line = file.readline()
-    for elem in line.split():
-        p.append(int(elem))
-    p = ''.join(map(str, makeUsableList(p)))
+    #for elem in line.split():
+    #    p.append(int(elem))
+    #p = ''.join(map(str, makeUsableList(p)))
+    p = line
     return p
     
 #Felipe/Alan PROMEDIAR PADRES
@@ -374,8 +377,8 @@ selfModel.initializePop(10)
 
 #print(selfModel)
 
-file1 = open("testInput/datosNormales.txt", "rt")
-file2 = open("testInput/datosAtaque.txt", "rt")
+file1 = open("data/normal_parsed.txt", "rt")
+file2 = open("data/incidente_parsed.txt", "rt")
 
 currentFile = file1
 
@@ -387,13 +390,14 @@ lastPacket = None
 
 while(True):
     ticks = ticks + 1
+    if(ticks % 1000 == 0):
+        print(ticks)
     models = selfModels + nonSelfModels
-    if(ticks == 251):
+    if(ticks == 68634):
         currentFile = file2
     #Leemos y procesamos el siguiente paquete
-    try:
-        packet = parsePacket(currentFile)
-    except(IndexError):
+    packet = parsePacket(currentFile)
+    if(packet == ""):
         print("Parece que se terminó el archivo")
         plt.plot(fitnessHistory)
         plt.show()
@@ -409,13 +413,14 @@ while(True):
     for i in models:
         i.feedPop(packet, lastPacket)
 
-    #print(selfModel)
-    #input()
+    
     percentageElitism = 0.4
     newMemory = 10
     #Esto controla cada cuantas generaciones se realiza una cruza. (def = 1, osea en todas)
     if(not ticks % 10):
-        print(ticks)
+        #print(ticks)
+        #print(selfModel)
+        #input()
         medianFitness = evaluatePop(i) / len(i.population)
         fitnessHistory.append(medianFitness)
         
@@ -432,7 +437,7 @@ while(True):
                 #h2.mutate()
                 new.append(h1)
                 #new.append(h2)
-            elitism(i.population,new)
+            i.population = elitism(i.population,new)
             i.memoryUpdate()
             if((not ticks % newMemory) and (ticks !=0)):
                 i.memoryChange()
