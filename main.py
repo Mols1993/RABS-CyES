@@ -7,7 +7,7 @@ contadorIndividuos = 0 #Contador de individuos para ID
 
 ## FIN PARÁMETROS DE LA EVOLUCIÓN
 
-#Contador para tipos de paquetes, para actualizar los genes de los agentes y el comodin
+#Contador para tipos de paquetes, para actualizar los genes de los agentes y el comodín
 packetList = {}
 
 class individual:
@@ -377,7 +377,7 @@ selfModel.initializePop(10)
 
 #print(selfModel)
 
-file1 = open("data/normal_parsed.txt", "rt")
+file1 = open("data/1000_1000.txt", "rt")
 file2 = open("data/incidente_parsed.txt", "rt")
 
 currentFile = file1
@@ -390,11 +390,12 @@ lastPacket = None
 
 while(True):
     ticks = ticks + 1
-    if(ticks % 1000 == 0):
+    if(ticks % 100 == 0):
         print(ticks)
     models = selfModels + nonSelfModels
-    if(ticks == 68634):
-        currentFile = file2
+    #if(ticks == 68634):
+    #    currentFile = file2
+
     #Leemos y procesamos el siguiente paquete
     packet = parsePacket(currentFile)
     if(packet == ""):
