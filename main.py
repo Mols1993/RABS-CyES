@@ -4,7 +4,12 @@ import matplotlib.pyplot as plt
 ## PARÁMETROS DE LA EVOLUCIÓN
 initialMatrixSize = 2 #Tamaño de matriz para la inicialización inicial de la población
 contadorIndividuos = 0 #Contador de individuos para ID
-
+margenChoose = 0.1 #Margen de choosePackets() del individuo
+mutacion = 0.05 # Porcentaje de mutacion del inviduo
+initialPop = 10 #Cantidad de individuos, poblacion inicial
+umbralPackets = 100 #umbral de minimos paquetes para agregarlos a diccionario  
+percentageElitism = 0.4 #Porcentaje de elitismo a realizar
+newMemory = 10 #Cantidad de ciclos para actualizar celula de memoria
 ## FIN PARÁMETROS DE LA EVOLUCIÓN
 
 #Contador para tipos de paquetes, para actualizar los genes de los agentes y el comodín
@@ -61,7 +66,7 @@ class individual:
             packets: Paquetes a los cuales se le apuesta.
         """
         packets = [] # Se guardaran las mejores opciones
-        margen = 0.1
+        #margenChoose = 0.1
         max = [None, 0]
         for i in fMarkov:
             if max[1] <= i[1]:
@@ -69,7 +74,7 @@ class individual:
         packets.append(max[0])
 
         for i in fMarkov:
-            if i[1] >= max[1]-(max[1]*margen) and max != i:
+            if i[1] >= max[1]-(max[1]*margenChoose) and max != i:
                 packets.append(i[0])
         
         return packets
@@ -77,7 +82,7 @@ class individual:
     #Felipe/Alan CAMBIAR ESTO
     def mutate2(self):
         """Mutar el individuo."""
-        mutacion = 0.05
+        #mutacion = 0.05
         for i in self.genes.keys():
             rand = random.random()
             if rand <= mutacion:
@@ -89,7 +94,7 @@ class individual:
     
     def mutate(self):
         """Mutar el individuo."""
-        mutacion = 0.05
+        #mutacion = 0.05
         for i in self.genes.keys():
             rand = random.random()
             if rand <= mutacion:
@@ -231,7 +236,7 @@ class model:
     def checkDictionaryUpdate(self):
         """Revisar si hay algun paquete nuevo que agregar a su matriz de markov
         """
-        commonPackets = list(dict(filter(lambda p: int(p[1]) >= 100, packetList.items())).keys())
+        commonPackets = list(dict(filter(lambda p: int(p[1]) >= umbralPackets, packetList.items())).keys())
         for i in commonPackets:
             for j in self.population:
                 if(i not in j.genes):
@@ -373,7 +378,7 @@ selfModels = [selfModel]
 nonSelfModels = []
 
 #Inicializamos la poblacion
-selfModel.initializePop(10)
+selfModel.initializePop(initialPop)
 
 #print(selfModel)
 
@@ -382,7 +387,7 @@ file2 = open("data/incidente_parsed.txt", "rt")
 
 currentFile = file1
 
-ticks = 0
+ticks = 0 
 
 fitnessHistory = []
 
@@ -415,8 +420,7 @@ while(True):
         i.feedPop(packet, lastPacket)
 
     
-    percentageElitism = 0.4
-    newMemory = 10
+   
     #Esto controla cada cuantas generaciones se realiza una cruza. (def = 1, osea en todas)
     if(not ticks % 10):
         #print(ticks)
