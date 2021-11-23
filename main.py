@@ -2,14 +2,14 @@ import numpy as np
 import random, copy
 import matplotlib.pyplot as plt
 ## PARÁMETROS DE LA EVOLUCIÓN
-initialMatrixSize = 2 #Tamaño de matriz para la inicialización inicial de la población
 contadorIndividuos = 0 #Contador de individuos para ID
 margenChoose = 0.1 #Margen de choosePackets() del individuo
 mutacion = 0.05 # Porcentaje de mutacion del inviduo
-initialPop = 10 #Cantidad de individuos, poblacion inicial
+initialPop = 100 #Cantidad de individuos, poblacion inicial
 umbralPackets = 100 #umbral de minimos paquetes para agregarlos a diccionario  
 percentageElitism = 0.4 #Porcentaje de elitismo a realizar
 newMemory = 10 #Cantidad de ciclos para actualizar celula de memoria
+cycles = 10 #Cantidad de paquetes para evaluar la población
 ## FIN PARÁMETROS DE LA EVOLUCIÓN
 
 #Contador para tipos de paquetes, para actualizar los genes de los agentes y el comodín
@@ -136,10 +136,11 @@ class individual:
 
 
 class model:
-    def __init__(self, pop = [], signal = False):
+    def __init__(self, pop = [], signal = False, modelType = "normal"):
         self.population = pop
         self.signal = signal
         self.memory = None
+        self.type = modelType
 
     def __repr__(self):
         return str(self.population)
@@ -169,6 +170,8 @@ class model:
         """
         for i in self.population:
             i.eatPacket(packet, lastPacket)
+        if(self.memory != None):
+            self.memory.eatPacket(packet, lastPacket)
 
     def memoryUpdate(self):
         """Darle un punto de fitnessMemory a los individuos de la poblacion con mayor fitness despues de un ciclo.
@@ -366,9 +369,11 @@ def evaluatePop(model = None):
     Returns:
         totalFitness: La suma de las fitness de toda la población.
     """
-    totalFitness = 0
-    for i in model.population:
-        totalFitness = totalFitness + i.fitness
+    totalFitness = -1
+    #for i in model.population:
+    #    totalFitness = totalFitness + i.fitness
+    if(model.memory != None):
+        totalFitness = model.memory.fitness
 
     return totalFitness
 
@@ -376,6 +381,9 @@ def evaluatePop(model = None):
 selfModel = model()
 selfModels = [selfModel]
 nonSelfModels = []
+
+#ataqueModel = model(pop = selfModel.population, signal = True, modelType = "ataque")
+#nonSelfModels.append(ataqueModel)
 
 #Inicializamos la poblacion
 selfModel.initializePop(initialPop)
@@ -422,11 +430,11 @@ while(True):
     
    
     #Esto controla cada cuantas generaciones se realiza una cruza. (def = 1, osea en todas)
-    if(not ticks % 10):
+    if(not ticks % cycles):
         #print(ticks)
         #print(selfModel)
         #input()
-        medianFitness = evaluatePop(i) / len(i.population)
+        medianFitness = evaluatePop(i)
         fitnessHistory.append(medianFitness)
         
         #Realizamos la seleccion de padres
