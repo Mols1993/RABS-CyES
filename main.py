@@ -435,6 +435,8 @@ while(True):
         #print(selfModel)
         #input()
         medianFitness = evaluatePop(i)
+        if medianFitness < 5 and ticks > 10:
+            print("EN ATAQUE")
         fitnessHistory.append(medianFitness)
         
         #Realizamos la seleccion de padres
@@ -456,6 +458,8 @@ while(True):
                 i.memoryChange()
             for j in i.population:
                 j.fitness = 0
+            if i.memory != None:
+                i.memory.fitness = 0
         #Actualizamos la matriz de todos los agentes si hay un nuevo paquete que agregar a sus genes
         i.checkDictionaryUpdate()
             
