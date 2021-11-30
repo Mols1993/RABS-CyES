@@ -399,17 +399,17 @@ def attack(listFitness):
     Returns:
         enAtaque: booleano que determina si está en ataque
     """
-    enAtaque = False
-    if len(listFitness) > 5:
-        porcentaje = 1-(listFitness[-1]/listFitness[len(listFitness)-2])
-        if porcentaje > 0.4:
-            enAtaque = True
+
+    if len(listFitness) > 11:
+        for i in range(len(listFitness)-10,len(listFitness)):
+            porcentaje = 1-(listFitness[-1]/listFitness[i])
+            if porcentaje >= 0.4:
+                return True
+
+    if bool(listFitness) and listFitness[-1] <= 5:
+        return True
     
-    
-    return enAtaque 
-
-
-
+    return False 
 
 
 #Creamos los modelos
@@ -470,7 +470,7 @@ while(True):
         #print(selfModel)
         #input()
         medianFitness = evaluatePop(i)
-        if attack(fitnessHistory) and ticks > 10:
+        if attack(fitnessHistory) and ticks > 20:
             print("EN ATAQUE")
             i.addFeromone(feromoneAdded)
         fitnessHistory.append(medianFitness)
