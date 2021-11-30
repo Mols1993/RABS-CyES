@@ -377,6 +377,28 @@ def evaluatePop(model = None):
 
     return totalFitness
 
+def attack(listFitness):
+    """Evaluar posible ataque".
+
+    Args:
+        listFitness: lista del fitness historico
+
+    Returns:
+        enAtaque: booleano que determina si está en ataque
+    """
+    enAtaque = False
+    if len(listFitness) > 5:
+        porcentaje = 1-(listFitness[-1]/listFitness[len(listFitness)-2])
+        if porcentaje > 0.4:
+            enAtaque = True
+    
+    
+    return enAtaque 
+
+
+
+
+
 #Creamos los modelos
 selfModel = model()
 selfModels = [selfModel]
@@ -435,7 +457,7 @@ while(True):
         #print(selfModel)
         #input()
         medianFitness = evaluatePop(i)
-        if medianFitness < 5 and ticks > 10:
+        if attack(fitnessHistory) and ticks > 10:
             print("EN ATAQUE")
         fitnessHistory.append(medianFitness)
         
