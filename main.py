@@ -8,8 +8,11 @@ mutacion = 0.05 # Porcentaje de mutacion del inviduo
 initialPop = 100 #Cantidad de individuos, poblacion inicial
 umbralPackets = 100 #umbral de minimos paquetes para agregarlos a diccionario  
 percentageElitism = 0.4 #Porcentaje de elitismo a realizar
-newMemory = 10 #Cantidad de ciclos para actualizar celula de memoria
+newMemory = 100 #Cantidad de ciclos para actualizar celula de memoria
 cycles = 10 #Cantidad de paquetes para evaluar la población
+attackThreshold = 100 #Cantidad de feromona para declarar un ataque
+evaporationRate = 1 #Velocidad de evaporacion de la feromona
+feromoneAdded = 10 #Cantidad de feromona a agregar en cada evaluacion que indica ataque
 ## FIN PARÁMETROS DE LA EVOLUCIÓN
 
 #Contador para tipos de paquetes, para actualizar los genes de los agentes y el comodín
@@ -141,6 +144,7 @@ class model:
         self.signal = signal
         self.memory = None
         self.type = modelType
+        self.alertLevel = 0
 
     def __repr__(self):
         return str(self.population)
@@ -244,13 +248,22 @@ class model:
             for j in self.population:
                 if(i not in j.genes):
                     j.updateGenesWithPacket(i)
+    
+    def evaporate(self, amount = 1):
+        """Evaporar la cantidad de feromona/señal.
 
-    def signalAmount(self):
-        """Calcular y retornar la cantidad de feromona/señal que este modelo emite.
-        
-        Returns:
-            f: Cantidad de feromona que el modelo emite
+        Args:
+            amount: Cantidad de feromona/señal a evaporar
         """
+        self.alertLevel = self.alertLevel - amount
+
+    def addFeromone(self, amount = 1):
+        """Agregar la cantidad de feromona/señal.
+
+        Args:
+            amount: Cantidad de feromona/señal a agregar
+        """
+        self.alertLevel = self.alertLevel + amount
 
 def elitism(population,news):
     """Ordenar segun fitness y eliminar a los peores reemplazandolos por los hijos creados.
@@ -445,11 +458,11 @@ while(True):
     else:
         packetList[packet] = 1
 
-    #Alimentamos a el/los modelos
     for i in models:
+        #Alimentamos a el/los modelos
         i.feedPop(packet, lastPacket)
-
-    
+        #Evaporamos la feromona de las poblaciones
+        i.evaporate(evaporationRate)
    
     #Esto controla cada cuantas generaciones se realiza una cruza. (def = 1, osea en todas)
     if(not ticks % cycles):
@@ -459,6 +472,7 @@ while(True):
         medianFitness = evaluatePop(i)
         if attack(fitnessHistory) and ticks > 10:
             print("EN ATAQUE")
+            i.addFeromone(feromoneAdded)
         fitnessHistory.append(medianFitness)
         
         #Realizamos la seleccion de padres
