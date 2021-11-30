@@ -255,7 +255,7 @@ class model:
         Args:
             amount: Cantidad de feromona/señal a evaporar
         """
-        self.alertLevel = self.alertLevel - amount
+        self.alertLevel = max(self.alertLevel - amount, 0)
 
     def addFeromone(self, amount = 1):
         """Agregar la cantidad de feromona/señal.
@@ -461,8 +461,6 @@ while(True):
     for i in models:
         #Alimentamos a el/los modelos
         i.feedPop(packet, lastPacket)
-        #Evaporamos la feromona de las poblaciones
-        i.evaporate(evaporationRate)
    
     #Esto controla cada cuantas generaciones se realiza una cruza. (def = 1, osea en todas)
     if(not ticks % cycles):
@@ -470,6 +468,10 @@ while(True):
         #print(selfModel)
         #input()
         medianFitness = evaluatePop(i)
+
+        #Evaporamos la feromona de las poblaciones
+        i.evaporate(evaporationRate)
+
         if attack(fitnessHistory) and ticks > 20:
             print("EN ATAQUE")
             i.addFeromone(feromoneAdded)
