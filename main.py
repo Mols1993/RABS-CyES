@@ -1,4 +1,3 @@
-import numpy as np
 import random, copy
 import matplotlib.pyplot as plt
 ## PARÁMETROS DE LA EVOLUCIÓN
@@ -13,6 +12,7 @@ cycles = 10 #Cantidad de paquetes para evaluar la población
 attackThreshold = 30 #Cantidad de feromona para declarar un ataque
 evaporationRate = 1 #Velocidad de evaporacion de la feromona
 feromoneAdded = 10 #Cantidad de feromona a agregar en cada evaluacion que indica ataque
+porcentajeAtaque = 0.3 #Porcentaje de baja del fitness para detectar un ataque
 grafico = "promedio"
 ## FIN PARÁMETROS DE LA EVOLUCIÓN
 
@@ -146,6 +146,7 @@ class model:
         self.type = modelType
         self.alertLevel = 0
         self.repose = False
+        self.timeActive = 0
         self.fitnessHistory = []
 
     def __repr__(self):
@@ -385,11 +386,18 @@ def evaluatePop(model = None):
         totalFitness: La suma de las fitness de toda la población.
     """
     
-    if (grafico=="promedio"):
+    if grafico=="promedio":
         totalFitness = 0
         for i in model.population:
             totalFitness = totalFitness + i.fitness
         totalFitness = totalFitness/len(model.population)
+    
+    elif grafico=="elite":
+        totalFitness = 0
+        for i in range(int(len(model.population)*percentageElitism)):
+            totalFitness = totalFitness + model.population[i].fitness
+        totalFitness = totalFitness/int(len(model.population)*percentageElitism)
+    
     else:
         totalFitness = -1    
         if(model.memory != None):
@@ -397,7 +405,7 @@ def evaluatePop(model = None):
 
     return totalFitness
 
-def attack(listFitness):
+def attack(listFitness,models = None):
     """Evaluar posible ataque".
 
     Args:
@@ -406,16 +414,20 @@ def attack(listFitness):
     Returns:
         booleano que determina si está en ataque
     """
-    porcentajeAtaque = 0.15
-    if len(listFitness) > 11:
-        for i in range(len(listFitness)-10,len(listFitness)):
-            porcentaje = 1-(listFitness[-1]/listFitness[i])
-            if porcentaje >= porcentajeAtaque:
-                return True
+    if models == None:
+        if len(listFitness) > 11:
+            for i in range(len(listFitness)-10,len(listFitness)):
+                porcentaje = 1-(listFitness[-1]/listFitness[i])
+                if porcentaje >= porcentajeAtaque:
+                    return True
 
-    if bool(listFitness) and listFitness[-1] <= 5:
-        return True
-    
+        if bool(listFitness) and listFitness[-1] <= 5:
+            return True
+    else:
+        for i in models:
+            if i.repose:
+                if i.fitnessHistory[-1]>=listFitness[-1]:
+                    return True 
     return False 
 
 
@@ -475,19 +487,29 @@ while(True):
         packetList[packet] = packetList[packet] + 1
     else:
         packetList[packet] = 1
+           
 
     for i in models:
         #Alimentamos a el/los modelos
         i.feedPop(packet, lastPacket)
-
-    for i in models:
-        if (not i.repose) and i.alertLevel>attackThreshold and i.type == "normal":
-            i.repose = True
+        if not i.repose:
+            i.timeActive = i.timeActive + 1
+        #Vemos si es necesario realizar cambio al modelo de ataque
+        if (not i.repose) and i.alertLevel>attackThreshold and i.timeActive>=100:
             if ataqueModel == None:
                 ataqueModel = model(pop = copy.deepcopy(selfModel.population), modelType = "ataque")
                 ataqueModel.fitnessHistory = fitnessHistory
                 nonSelfModels.append(ataqueModel)
                 models = selfModels + nonSelfModels
+            else:
+                 for j in models:
+                     if j.repose:
+                        j.alertLevel = 0
+                        j.repose = False
+                        j.timeActive = 0
+            i.repose = True
+            i.alertLevel = 0
+            i.timeActive = 0
             print("cambio")
 
     #Esto controla cada cuantas generaciones se realiza una cruza. (def = 1, osea en todas)
@@ -506,11 +528,11 @@ while(True):
             
         
         for i in models:
-            if attack(i.fitnessHistory) and ticks > newMemory*2 and (not i.repose) and i.type !="ataque":
-                print("EN ATAQUE "+str(i.alertLevel)+" "+i.type)
-                i.addFeromone(feromoneAdded)
-        
-        
+            if not i.repose and i.timeActive>=100:
+                if attack(i.fitnessHistory) and ticks > newMemory*2:
+                    print("EN ATAQUE "+str(i.alertLevel)+" "+i.type+" "+str(i.timeActive))
+                    i.addFeromone(feromoneAdded)
+    
         #Realizamos la seleccion de padres
         for i in models:
             if not i.repose:
