@@ -8,11 +8,12 @@ mutacion = 0.05 # Porcentaje de mutacion del inviduo
 initialPop = 100 #Cantidad de individuos, poblacion inicial
 umbralPackets = 100 #umbral de minimos paquetes para agregarlos a diccionario  
 percentageElitism = 0.4 #Porcentaje de elitismo a realizar
-newMemory = 100 #Cantidad de ciclos para actualizar celula de memoria
+newMemory = 10 #Cantidad de ciclos para actualizar celula de memoria
 cycles = 10 #Cantidad de paquetes para evaluar la población
-attackThreshold = 100 #Cantidad de feromona para declarar un ataque
+attackThreshold = 30 #Cantidad de feromona para declarar un ataque
 evaporationRate = 1 #Velocidad de evaporacion de la feromona
 feromoneAdded = 10 #Cantidad de feromona a agregar en cada evaluacion que indica ataque
+grafico = "promedio"
 ## FIN PARÁMETROS DE LA EVOLUCIÓN
 
 #Contador para tipos de paquetes, para actualizar los genes de los agentes y el comodín
@@ -139,12 +140,13 @@ class individual:
 
 
 class model:
-    def __init__(self, pop = [], signal = False, modelType = "normal"):
+    def __init__(self, pop = [], modelType = "normal"):
         self.population = pop
-        self.signal = signal
         self.memory = None
         self.type = modelType
         self.alertLevel = 0
+        self.repose = False
+        self.fitnessHistory = []
 
     def __repr__(self):
         return str(self.population)
@@ -382,11 +384,16 @@ def evaluatePop(model = None):
     Returns:
         totalFitness: La suma de las fitness de toda la población.
     """
-    totalFitness = -1
-    #for i in model.population:
-    #    totalFitness = totalFitness + i.fitness
-    if(model.memory != None):
-        totalFitness = model.memory.fitness
+    
+    if (grafico=="promedio"):
+        totalFitness = 0
+        for i in model.population:
+            totalFitness = totalFitness + i.fitness
+        totalFitness = totalFitness/len(model.population)
+    else:
+        totalFitness = -1    
+        if(model.memory != None):
+            totalFitness = model.memory.fitness
 
     return totalFitness
 
@@ -397,13 +404,13 @@ def attack(listFitness):
         listFitness: lista del fitness historico
 
     Returns:
-        enAtaque: booleano que determina si está en ataque
+        booleano que determina si está en ataque
     """
-
+    porcentajeAtaque = 0.15
     if len(listFitness) > 11:
         for i in range(len(listFitness)-10,len(listFitness)):
             porcentaje = 1-(listFitness[-1]/listFitness[i])
-            if porcentaje >= 0.4:
+            if porcentaje >= porcentajeAtaque:
                 return True
 
     if bool(listFitness) and listFitness[-1] <= 5:
@@ -416,7 +423,9 @@ def attack(listFitness):
 selfModel = model()
 selfModels = [selfModel]
 nonSelfModels = []
+selfModel.repose = False
 
+ataqueModel = None
 #ataqueModel = model(pop = selfModel.population, signal = True, modelType = "ataque")
 #nonSelfModels.append(ataqueModel)
 
@@ -438,9 +447,12 @@ lastPacket = None
 
 while(True):
     ticks = ticks + 1
-    if(ticks % 100 == 0):
-        print(ticks)
     models = selfModels + nonSelfModels
+    if(ticks % 100 == 0):
+        for i in models:
+            if not i.repose:
+                print(str(ticks)+i.type)
+    
     #if(ticks == 68634):
     #    currentFile = file2
 
@@ -448,9 +460,15 @@ while(True):
     packet = parsePacket(currentFile)
     if(packet == ""):
         print("Parece que se terminó el archivo")
-        plt.plot(fitnessHistory)
+        legend = []
+        for i in models:
+            plt.plot(i.fitnessHistory)
+            legend.append(i.type)
+            #print(i.fitnessHistory)
+        plt.title("Normalidad vs Ataque")
+        plt.legend(legend)
         plt.show()
-        print(models)
+        #print(models)
         exit(0)
 
     if(packet in packetList):
@@ -461,39 +479,56 @@ while(True):
     for i in models:
         #Alimentamos a el/los modelos
         i.feedPop(packet, lastPacket)
-   
+
+    for i in models:
+        if (not i.repose) and i.alertLevel>attackThreshold and i.type == "normal":
+            i.repose = True
+            if ataqueModel == None:
+                ataqueModel = model(pop = copy.deepcopy(selfModel.population), modelType = "ataque")
+                ataqueModel.fitnessHistory = fitnessHistory
+                nonSelfModels.append(ataqueModel)
+                models = selfModels + nonSelfModels
+            print("cambio")
+
     #Esto controla cada cuantas generaciones se realiza una cruza. (def = 1, osea en todas)
     if(not ticks % cycles):
         #print(ticks)
         #print(selfModel)
         #input()
-        medianFitness = evaluatePop(i)
-
-        #Evaporamos la feromona de las poblaciones
-        i.evaporate(evaporationRate)
-
-        if attack(fitnessHistory) and ticks > 20:
-            print("EN ATAQUE")
-            i.addFeromone(feromoneAdded)
-        fitnessHistory.append(medianFitness)
+        for i in models:
+            medianFitness = evaluatePop(i)
+            if ataqueModel == None:
+                fitnessHistory.append(-1)
+            #Evaporamos la feromona de las poblaciones
+            i.evaporate(evaporationRate)
+            i.fitnessHistory.append(medianFitness)
+            
+            
+        
+        for i in models:
+            if attack(i.fitnessHistory) and ticks > newMemory*2 and (not i.repose) and i.type !="ataque":
+                print("EN ATAQUE "+str(i.alertLevel)+" "+i.type)
+                i.addFeromone(feromoneAdded)
+        
         
         #Realizamos la seleccion de padres
         for i in models:
-            parentsSize = int(len(i.population)*(1-percentageElitism))*2
-            parents = i.selectParents(parentsSize if parentsSize%2==0 else parentsSize+1)
-            #Realizamos la cruza
-            new = []
-            for j in range(0, len(parents), 2):
-                h1 = crossIndividuals2(parents[j].genes, parents[j + 1].genes)
-                #h2 = crossIndividuals2(parents[j+2].genes, parents[j + 3].genes)
-                h1.mutate2()
-                #h2.mutate()
-                new.append(h1)
-                #new.append(h2)
-            i.population = elitism(i.population,new)
-            i.memoryUpdate()
-            if((not ticks % newMemory) and (ticks !=0)):
-                i.memoryChange()
+            if not i.repose:
+                parentsSize = int(len(i.population)*(1-percentageElitism))*2
+                parents = i.selectParents(parentsSize if parentsSize%2==0 else parentsSize+1)
+                #Realizamos la cruza
+                new = []
+                for j in range(0, len(parents), 2):
+                    h1 = crossIndividuals2(parents[j].genes, parents[j + 1].genes)
+                    #h2 = crossIndividuals2(parents[j+2].genes, parents[j + 3].genes)
+                    h1.mutate2()
+                    #h2.mutate()
+                    new.append(h1)
+                    #new.append(h2)
+                i.population = elitism(i.population,new)
+                i.memoryUpdate()
+                if((not ticks % newMemory) and (ticks !=0)):
+                    i.memoryChange()
             for j in i.population:
                 j.fitness = 0
             if i.memory != None:
