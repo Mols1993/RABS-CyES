@@ -1,5 +1,8 @@
-import random, copy
+import copy
+import random
+
 import matplotlib.pyplot as plt
+
 ## PARÁMETROS DE LA EVOLUCIÓN
 contadorIndividuos = 0 #Contador de individuos para ID
 margenChoose = 0.1 #Margen de choosePackets() del individuo
@@ -446,10 +449,11 @@ selfModel.initializePop(initialPop)
 
 #print(selfModel)
 
-file1 = open("data/1000_1000.txt", "rt")
-file2 = open("data/incidente_parsed.txt", "rt")
-
-currentFile = file1
+file1 = open("data/normal+IS.txt", "rt")
+file2 = open("data/normal+ISNP.txt", "rt")
+file3 = open("data/normal+IS+normal.txt", "rt")
+file4 = open("data/normal+ISNP+normal.txt", "rt")
+currentFile = file4
 
 ticks = 0 
 
