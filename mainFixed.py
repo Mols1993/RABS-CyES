@@ -8,15 +8,22 @@ contadorIndividuos = 0 #Contador de individuos para ID
 margenChoose = 0.1 #Margen de choosePackets() del individuo
 mutacion = 0.05 # Porcentaje de mutacion del inviduo
 initialPop = 100 #Cantidad de individuos, poblacion inicial
-umbralPackets = 100 #umbral de minimos paquetes para agregarlos a diccionario  
+umbralPackets = 150 #umbral de minimos paquetes para agregarlos a diccionario  
 percentageElitism = 0.4 #Porcentaje de elitismo a realizar
 newMemory = 10 #Cantidad de ciclos para actualizar celula de memoria
 cycles = 10 #Cantidad de paquetes para evaluar la población
-attackThreshold = 30 #Cantidad de feromona para declarar un ataque
+attackThreshold = 50 #Cantidad de feromona para declarar un ataque
 evaporationRate = 1 #Velocidad de evaporacion de la feromona
-feromoneAdded = 10 #Cantidad de feromona a agregar en cada evaluacion que indica ataque
-porcentajeAtaque = 0.3 #Porcentaje de baja del fitness para detectar un ataque
+feromoneAdded = 5 #Cantidad de feromona a agregar en cada evaluacion que indica ataque
+porcentajeAtaque = 0.4 #Porcentaje de baja del fitness para detectar un ataque
+paquetesNormalidad = 1000
+maduracionNormalidad = False
 grafico = "promedio"
+file1 = open("data/normalidadPrueba.txt", "rt")
+file2 = open("data/normal+ISNP.txt", "rt")
+file3 = open("data/normal+IS+normal.txt", "rt")
+file4 = open("data/normal+ISNP+normal.txt", "rt")
+currentFile = file1
 ## FIN PARÁMETROS DE LA EVOLUCIÓN
 
 #Contador para tipos de paquetes, para actualizar los genes de los agentes y el comodín
@@ -252,7 +259,7 @@ class model:
         commonPackets = list(dict(filter(lambda p: int(p[1]) >= umbralPackets, packetList.items())).keys())
         for i in commonPackets:
             agente = self.population[0]
-            if i not in agente.genes:
+            if i not in agente.genes and len(agente.genes) < 5:
                 for j in models:
                     for k in j.population:
                         k.updateGenesWithPacket(i)
@@ -453,10 +460,8 @@ selfModel.initializePop(initialPop)
 
 #print(selfModel)
 
-file1 = open("data/normal+IS.txt", "rt")
-file2 = open("data/normal+ISNP.txt", "rt")
 
-currentFile = file2
+
 
 ticks = 0 
 
@@ -471,7 +476,7 @@ while(True):
         for i in models:
             #print(i.type+" "+str(len(i.population[-1].genes)))
             if not i.repose:
-                print(str(ticks)+" "+i.type)
+                print(str(ticks)+" "+i.type + " " + str(i.fitnessHistory[-1] ) + " " + str(len(i.population[-1].genes))) 
     
     #if(ticks == 68634):
     #    currentFile = file2
@@ -537,7 +542,7 @@ while(True):
         
         for i in models:
             if not i.repose and i.timeActive>=100:
-                if attack(i.fitnessHistory) and ticks > newMemory*2:
+                if attack(i.fitnessHistory) and ticks > newMemory*2 and maduracionNormalidad:
                     print("EN ATAQUE "+str(i.alertLevel)+" "+i.type+" "+str(i.timeActive))
                     i.addFeromone(feromoneAdded)
     
